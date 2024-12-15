@@ -55,7 +55,7 @@ public class ReceiptPanel {
             writer.write(String.format("%-20s %-10s$", "Total :",TotalPrice));
             writer.newLine();
 
-            JOptionPane.showMessageDialog(null, "Payment bill TXT file created successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(null, "Payment bill created successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
              File file = new File(fileName);
             if (file.exists()) {
                 Desktop.getDesktop().open(file); // Open the file with the default application

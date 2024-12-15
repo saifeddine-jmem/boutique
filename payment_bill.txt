@@ -1,0 +1,12 @@
+Payment Bill
+============
+Customer Name: edam yaiche
+Date: 2024-12-15 19:17:15
+
+Item                 Price     
+---------------------------------------------
+Minecraft            29.99     $
+Hollow Knight        14.99     $
+Grand Theft Auto V   29.99     $
+---------------------------------------------
+Total :              74.97     $

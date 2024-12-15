@@ -6,57 +6,52 @@ import java.awt.*;
 import java.util.ArrayList;
 
 
+
 public class ShopAuthentication {
     public static ArrayList<Game> games = new ArrayList<>();
     public static void main(String[] args) {
+        
         loadGames();
         UserManager.createAdmin();
         // Create the main frame
         JFrame frame = new JFrame("Welcome to Our Shop");
-        frame.setSize(700, 394);
+        frame.setSize(700, 400);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLayout(new BorderLayout());
+        frame.setLocationRelativeTo(null); // Center the frame
 
         JLabel titleLabel = new JLabel("Welcome to Our Shop", JLabel.CENTER);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        titleLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
+        titleLabel.setFont(new Font("Roboto", Font.BOLD, 30));
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 10, 0));
+
         frame.add(titleLabel, BorderLayout.NORTH);
         
         // Create buttons for Admin and Client
-       JButton adminButton = new JButton("Admin");
-        adminButton.setFont(new Font("Arial", Font.PLAIN, 16));
-        adminButton.setIcon(new ImageIcon("admin_icon.png")); // Replace with your icon path
-        adminButton.setVerticalTextPosition(SwingConstants.BOTTOM);
-        adminButton.setHorizontalTextPosition(SwingConstants.CENTER);
-
-         JButton clientButton = new JButton("Client");
-        clientButton.setFont(new Font("Arial", Font.PLAIN, 16));
-        clientButton.setIcon(new ImageIcon("client_icon.png")); // Replace with your icon path
-        clientButton.setVerticalTextPosition(SwingConstants.BOTTOM);
-        clientButton.setHorizontalTextPosition(SwingConstants.CENTER);
+       JButton adminButton = createStyledButton("Admin", "images/admin_icon.png");
+        JButton clientButton = createStyledButton("Client", "images/client_icon.png");
+        JButton signupButton = createStyledButton("Sign Up", "images/signup_icon.png");
         
 
        adminButton.addActionListener(e -> showAdminLoginDialog(frame));
         clientButton.addActionListener(e -> showClientLoginDialog(frame));
+        signupButton.addActionListener(e -> showClientSignupDialog(frame));
 
-        // Add buttons to a panel
-          JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 20, 0));
+
+        JPanel buttonPanel = new JPanel(new GridLayout(1, 3, 20, 0));
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));
         buttonPanel.add(adminButton);
         buttonPanel.add(clientButton);
+        buttonPanel.add(signupButton);
 
         frame.add(buttonPanel, BorderLayout.CENTER);
 
-        // Add footer
         JLabel footerLabel = new JLabel("© 2024 ShopApp Inc.", JLabel.CENTER);
-        footerLabel.setFont(new Font("Arial", Font.ITALIC, 12));
+        footerLabel.setFont(new Font("Roboto", Font.ITALIC, 15));
         footerLabel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
         frame.add(footerLabel, BorderLayout.SOUTH);
-        JButton signupButton = new JButton("Sign Up");
-    signupButton.setFont(new Font("Arial", Font.PLAIN, 16));
-    signupButton.setVerticalTextPosition(SwingConstants.BOTTOM);
-    signupButton.setHorizontalTextPosition(SwingConstants.CENTER);
-    signupButton.addActionListener(e -> showClientSignupDialog(frame));
+
+        // Set frame visible
+        frame.setVisible(true);
 
 // Add the signup button to your panel
 buttonPanel.add(signupButton);
@@ -250,6 +245,31 @@ buttonPanel.add(signupButton);
         "images/amongus.jpg"
     ));
 }
+       private static JButton createStyledButton(String text, String iconPath) {
+        JButton button = new JButton(text);
+        button.setFont(new Font("Roboto", Font.PLAIN, 25));
+        button.setIcon(new ImageIcon(iconPath)); // Add your image path
+        button.setVerticalTextPosition(SwingConstants.BOTTOM);
+        button.setHorizontalTextPosition(SwingConstants.CENTER);
+        button.setFocusPainted(false);
+        button.setBackground(new Color(70, 130, 180));
+        button.setForeground(Color.WHITE);
+        button.setBorder(BorderFactory.createRaisedBevelBorder());
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                button.setBackground(new Color(60, 110, 160));
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                button.setBackground(new Color(70, 130, 180));
+            }
+        });
+        return button;
+    }
+
+    
 }
 
 

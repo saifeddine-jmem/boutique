@@ -1,0 +1,13 @@
+Payment Bill
+============
+Customer Name: ahmed     
+Date: 2024-12-15 14:39:20
+
+Item                 Price     
+---------------------------------------------
+Grand Theft Auto V   29.99     $
+Among Us             4.99      $
+Dark Souls III       39.99     $
+The Legend of Zelda: Breath of the Wild 59.99     $
+---------------------------------------------
+Total :              134.96    $

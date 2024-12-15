@@ -15,9 +15,10 @@ class ClientPanel extends JFrame {
     private JTextField searchField;
     private Cart cart;
     private JLabel imageLabel;
-
+    String name ;
     public ClientPanel(Client client) {
         cart = client.getCart(); // Initialize the Cart
+        name = client.getName();
 
         setTitle("Client Panel");
         setSize(800, 600);
@@ -167,7 +168,7 @@ class ClientPanel extends JFrame {
 
     private void openCartPanel() {
         if (!cart.isEmpty()) {
-            new CartPanel(cart);
+            new CartPanel(cart , name);
         } else {
             JOptionPane.showMessageDialog(this, "Your cart is empty.");
         }

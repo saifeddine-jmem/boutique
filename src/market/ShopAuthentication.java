@@ -91,6 +91,7 @@ buttonPanel.add(signupButton);
    private static void showClientLoginDialog(JFrame parentFrame) {
     JTextField emailField = new JTextField();
     JPasswordField passwordField = new JPasswordField();
+    
     Object[] message = {
         "Enter Your Email:", emailField,
         "Enter Your Password:", passwordField
@@ -100,7 +101,19 @@ buttonPanel.add(signupButton);
 
     if (option == JOptionPane.OK_OPTION) {
         String email = emailField.getText().trim();
-        String password = new String(passwordField.getPassword());
+        String password = new String(passwordField.getPassword()).trim();
+
+        // Check if email or password is empty
+        if (email.isEmpty() || password.isEmpty()) {
+            JOptionPane.showMessageDialog(parentFrame, "Both fields are required.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Validate email format
+        if (!email.matches("^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$")) {
+            JOptionPane.showMessageDialog(parentFrame, "Please enter a valid email address.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
         if (UserManager.isAdmin(email)) {
             // Admin login
@@ -118,15 +131,18 @@ buttonPanel.add(signupButton);
                 // Open the client panel
                 openClientPanel(client);
             } else {
-                JOptionPane.showMessageDialog(parentFrame, "Invalid login details!", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(parentFrame, "Invalid email or password. Please try again.", "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
 }
-private static void showClientSignupDialog(JFrame parentFrame) {
+
+   
+    private static void showClientSignupDialog(JFrame parentFrame) {
     JTextField nameField = new JTextField();
     JTextField emailField = new JTextField();
     JPasswordField passwordField = new JPasswordField();
+    
     Object[] message = {
         "Enter Your Name:", nameField,
         "Enter Your Email:", emailField,
@@ -138,7 +154,25 @@ private static void showClientSignupDialog(JFrame parentFrame) {
     if (option == JOptionPane.OK_OPTION) {
         String name = nameField.getText().trim();
         String email = emailField.getText().trim();
-        String password = new String(passwordField.getPassword());
+        String password = new String(passwordField.getPassword()).trim();
+
+        // Check if any fields are empty
+        if (name.isEmpty() || email.isEmpty() || password.isEmpty()) {
+            JOptionPane.showMessageDialog(parentFrame, "All fields must be filled.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Validate email format
+        if (!email.matches("^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$")) {
+            JOptionPane.showMessageDialog(parentFrame, "Please enter a valid email address.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Check password strength (e.g., minimum 8 characters)
+        if (password.length() < 8) {
+            JOptionPane.showMessageDialog(parentFrame, "Password must be at least 8 characters long.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
         // Check if the client already exists
         if (UserManager.clientExists(email)) {
@@ -150,6 +184,7 @@ private static void showClientSignupDialog(JFrame parentFrame) {
         }
     }
 }
+
 
 
      private static void openAdminPanel() {

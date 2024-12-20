@@ -18,7 +18,7 @@ class CartPanel extends JFrame {
     private JList<String> cartList;
     private JLabel totalLabel;
 
-    public CartPanel(Cart cart) {
+    public CartPanel(Cart cart , String name,String email) {
         setTitle("Cart");
         setSize(700, 394);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -54,7 +54,7 @@ class CartPanel extends JFrame {
         removeButton.addActionListener(e -> removeSelectedItem(cart));
         JButton checkoutButton = new JButton("Checkout");
         checkoutButton.setFont(new Font("Arial", Font.PLAIN, 14));
-        checkoutButton.addActionListener(e -> proceedToCheckout(cart));
+        checkoutButton.addActionListener(e -> proceedToCheckout(cart ,name,email));
 
         buttonPanel.add(removeButton);
         buttonPanel.add(checkoutButton);
@@ -70,7 +70,8 @@ class CartPanel extends JFrame {
     }
 
     private double calculateTotal(Cart cart) {
-        return cart.getCartItems().stream().mapToDouble(Game::getPrice).sum();
+    double total = cart.getCartItems().stream().mapToDouble(Game::getPrice).sum();
+    return Math.round(total * 100.0) / 100.0;
     }
 
     private void removeSelectedItem(Cart cart) {
@@ -87,7 +88,7 @@ class CartPanel extends JFrame {
         }
     }
 
-    private void proceedToCheckout(Cart cart) {
+    private void proceedToCheckout(Cart cart ,String name, String email) {
         if (cart.getCartItems().isEmpty()) {
             JOptionPane.showMessageDialog(this,
                     "Your cart is empty! Add items to proceed.",
@@ -96,6 +97,7 @@ class CartPanel extends JFrame {
             JOptionPane.showMessageDialog(this,
                     "Thank you for your purchase! Total: $" + calculateTotal(cart),
                     "Checkout Complete", JOptionPane.INFORMATION_MESSAGE);
+            ReceiptPanel.Bill(cart , calculateTotal(cart), name,email);
             cart.clear(); // Assuming Cart has a clear method
             dispose(); // Close the cart window
         }

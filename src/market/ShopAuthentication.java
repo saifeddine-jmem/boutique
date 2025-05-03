@@ -10,9 +10,8 @@ import java.util.ArrayList;
 public class ShopAuthentication {
     public static ArrayList<Game> games = new ArrayList<>();
     public static void main(String[] args) {
+        DatabaseHelper.initializeDatabase();
         
-        loadGames();
-        UserManager.createAdmin();
         // Create the main frame
         JFrame frame = new JFrame("Welcome to Our Shop");
         frame.setSize(700, 400);
@@ -193,58 +192,7 @@ buttonPanel.add(signupButton);
 }
 
 
-       private static void loadGames() {
-    games.add(new Game(
-        "The Legend of Zelda: Breath of the Wild",
-        59.99, "An open-world action-adventure game where you explore the vast kingdom of Hyrule, solve puzzles, and battle enemies.",
-        "images/zelda.jpg"
-    ));
-    games.add(new Game(
-        "The Witcher 3: Wild Hunt",
-        49.99, "A story-driven RPG set in a visually stunning fantasy universe filled with meaningful choices and impactful consequences.",
-        "images/witcher3.jpg"
-    ));
-    games.add(new Game(
-        "Minecraft",
-        29.99, "A sandbox game where you can build, explore, and survive in a blocky, procedurally-generated 3D world.",
-        "images/minecraft.jpg"
-    ));
-    games.add(new Game(
-        "Red Dead Redemption 2",
-        69.99, "An epic tale of life in America’s unforgiving heartland with a huge, richly detailed open world.",
-        "images/rdr2.jpg"
-    ));
-    games.add(new Game(
-        "Cyberpunk 2077",
-        49.99, "An open-world action-adventure story set in Night City, a megalopolis obsessed with power, glamour, and body modification.",
-        "images/cyberpunk2077.jpg"
-    ));
-    games.add(new Game(
-        "God of War",
-        39.99, "An action-adventure game that follows Kratos and his son Atreus on an epic journey through Norse mythology.",
-        "images/godofwar.jpg"
-    ));
-    games.add(new Game(
-        "Grand Theft Auto V",
-        29.99, "An open-world action game with a gripping story, multiple characters, and countless activities to explore.",
-        "images/gta5.jpg"
-    ));
-    games.add(new Game(
-        "Hollow Knight",
-        14.99, "A challenging action-adventure game set in a vast interconnected world full of insects and mystery.",
-        "images/hollowknight.jpg"
-    ));
-    games.add(new Game(
-        "Dark Souls III",
-        39.99, "An action RPG known for its dark fantasy setting, intricate world design, and punishing difficulty.",
-        "images/darksouls3.jpg"
-    ));
-    games.add(new Game(
-        "Among Us",
-        4.99, "A multiplayer social deduction game where players work together to complete tasks, but beware of impostors!",
-        "images/amongus.jpg"
-    ));
-}
+      
        private static JButton createStyledButton(String text, String iconPath) {
         JButton button = new JButton(text);
         button.setFont(new Font("Roboto", Font.PLAIN, 25));

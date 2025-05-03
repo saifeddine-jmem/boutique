@@ -4,6 +4,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 import javax.swing.border.EmptyBorder;  // Add this import
@@ -322,11 +324,13 @@ public class AdminCode extends JFrame {
 }
 
     // Inner class for Game Management (Same game management code from your AdminCode)
-   public class GameManagementPanel extends JFrame {
-
+   // Inner class for Game Management (updated to use GameManager)
+class GameManagementPanel extends JFrame {
     private static final long serialVersionUID = 1L;
     private DefaultListModel<String> gameListModel;
     private JList<String> gameList;
+    private List<Game> currentGames;
+    private Map<String, Integer> gameNameToIdMap;
 
     public GameManagementPanel() {
         setTitle("Game Management Panel");
@@ -334,18 +338,19 @@ public class AdminCode extends JFrame {
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLayout(new BorderLayout(10, 10));
 
-        // Add padding
+        // Initialize components
+        gameListModel = new DefaultListModel<>();
+        gameList = new JList<>(gameListModel);
+        currentGames = new ArrayList<>();
+        gameNameToIdMap = new HashMap<>();
+
+        // Build UI
         JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
         mainPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
 
-        // Add game button
         JButton addGameButton = createStyledButton("Add Game", new Color(70, 130, 180));
         addGameButton.addActionListener(e -> showAddGameDialog());
 
-        // Game list
-        gameListModel = new DefaultListModel<>();
-        gameList = new JList<>(gameListModel);
-        gameList.setFont(new Font("Arial", Font.PLAIN, 14));
         gameList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         gameList.addMouseListener(new MouseAdapter() {
             @Override
@@ -353,18 +358,15 @@ public class AdminCode extends JFrame {
                 if (e.getClickCount() == 2) {
                     int selectedIndex = gameList.getSelectedIndex();
                     if (selectedIndex >= 0) {
-                        showGameDetails(ShopAuthentication.games.get(selectedIndex), selectedIndex);
+                        showGameDetails(currentGames.get(selectedIndex), selectedIndex);
                     }
                 }
             }
         });
 
-        JScrollPane gameListScrollPane = new JScrollPane(gameList);
-        gameListScrollPane.setPreferredSize(new Dimension(300, 500));
-
+        JScrollPane scrollPane = new JScrollPane(gameList);
         mainPanel.add(addGameButton, BorderLayout.NORTH);
-        mainPanel.add(gameListScrollPane, BorderLayout.CENTER);
-
+        mainPanel.add(scrollPane, BorderLayout.CENTER);
         add(mainPanel, BorderLayout.CENTER);
 
         updateGameList();
@@ -373,218 +375,133 @@ public class AdminCode extends JFrame {
 
     private void updateGameList() {
         gameListModel.clear();
-        try {
-            List<Game> games = ShopAuthentication.games;
-            for (Game game : games) {
-                gameListModel.addElement(game.getName() + " - $" + game.getPrice());
-            }
-        } catch (Exception e) {
-            showError("Error updating game list: " + e.getMessage());
+        currentGames.clear();
+        gameNameToIdMap.clear();
+
+        List<Game> games = GameManager.getAllGames();
+        currentGames.addAll(games);
+
+        for (Game game : games) {
+            gameListModel.addElement(game.getName() + " - $" + game.getPrice());
         }
     }
 
-   private void showAddGameDialog() {
-    // Initialize an empty game object
-    Game newGame = new Game("", 0, "", "");
+    private void showAddGameDialog() {
+        showGameDetails(new Game("", "", 0, ""), -1);
+    }
 
-    // Pass the game to showGameDetails (but don't add it yet)
-    showGameDetails(newGame, -1);
+    private void showGameDetails(Game game, int listIndex) {
+        JDialog dialog = new JDialog(this, listIndex >= 0 ? "Edit Game" : "Add Game", true);
+        dialog.setSize(600, 500);
+        dialog.setLocationRelativeTo(this);
 
-    // Save button will handle adding the game if the name is not empty
-    JButton saveButton = new JButton("Save");
-    saveButton.addActionListener(e -> {
-        if (!newGame.getName().isEmpty()) {
-            ShopAuthentication.games.add(newGame);
-            updateGameList();
+        // Input fields
+        JTextField nameField = new JTextField(game.getName());
+        JTextField priceField = new JTextField(String.valueOf(game.getPrice()));
+        JTextArea descriptionField = new JTextArea(game.getDescription());
+        descriptionField.setLineWrap(true);
+        descriptionField.setWrapStyleWord(true);
+
+        // Image selection
+        JButton imageButton = new JButton("Select Image");
+        JLabel imagePreview = new JLabel();
+        imagePreview.setPreferredSize(new Dimension(200, 200));
+        if (!game.getImagePath().isEmpty()) {
+            updateImagePreview(imagePreview, game.getImagePath());
         }
-    });
-}
 
+        String[] imagePath = {game.getImagePath()};
+        imageButton.addActionListener(e -> {
+            JFileChooser chooser = new JFileChooser();
+            if (chooser.showOpenDialog(dialog) == JFileChooser.APPROVE_OPTION) {
+                imagePath[0] = chooser.getSelectedFile().getAbsolutePath();
+                updateImagePreview(imagePreview, imagePath[0]);
+            }
+        });
 
-    private void showGameDetails(Game game, int gameIndex) {
-    // Main dialog for editing game details
-    JDialog dialog = new JDialog(this, "Edit Game Details", true);
-    dialog.setSize(700, 500);
-    dialog.setLocationRelativeTo(this);
-    dialog.setLayout(new BorderLayout(10, 10));
+        // Layout
+        JPanel inputPanel = new JPanel(new GridLayout(4, 2, 5, 5));
+        inputPanel.add(new JLabel("Name:"));
+        inputPanel.add(nameField);
+        inputPanel.add(new JLabel("Price:"));
+        inputPanel.add(priceField);
+        inputPanel.add(new JLabel("Description:"));
+        inputPanel.add(new JScrollPane(descriptionField));
+        inputPanel.add(new JLabel("Image:"));
+        inputPanel.add(imageButton);
 
-    // Input fields
-    JTextField nameField = new JTextField(game.getName());
-    JTextField priceField = new JTextField(String.valueOf(game.getPrice()));
-    JTextArea descriptionField = new JTextArea(game.getDescription(), 5, 20);
-    descriptionField.setLineWrap(true);
-    descriptionField.setWrapStyleWord(true);
-    JButton imageButton = createStyledButton("Select Image", new Color(34, 139, 34));
+        JPanel imagePanel = new JPanel(new BorderLayout());
+        imagePanel.add(imagePreview, BorderLayout.CENTER);
 
-    // Image preview
-    JLabel imagePreview = new JLabel();
-    imagePreview.setPreferredSize(new Dimension(200, 200));
-    updateImagePreview(imagePreview, game.getImagePath());
+        JPanel centerPanel = new JPanel(new BorderLayout(10, 10));
+        centerPanel.add(inputPanel, BorderLayout.CENTER);
+        centerPanel.add(imagePanel, BorderLayout.EAST);
 
-    final String[] imagePath = {game.getImagePath()};
-    imageButton.addActionListener(e -> {
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        int option = fileChooser.showOpenDialog(dialog);
-        if (option == JFileChooser.APPROVE_OPTION) {
-            File selectedFile = fileChooser.getSelectedFile();
-            imagePath[0] = selectedFile.getAbsolutePath();
-            updateImagePreview(imagePreview, imagePath[0]);
-        }
-    });
+        // Buttons
+        JButton saveButton = new JButton("Save");
+        JButton deleteButton = new JButton("Delete");
+        deleteButton.setVisible(listIndex >= 0);
 
-    // Input panel with GridBagLayout
-    JPanel inputPanel = new JPanel(new GridBagLayout());
-    inputPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-    GridBagConstraints gbc = new GridBagConstraints();
-    gbc.insets = new Insets(10, 10, 10, 10);
-    gbc.anchor = GridBagConstraints.WEST;
-    gbc.fill = GridBagConstraints.HORIZONTAL;
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.add(saveButton);
+        buttonPanel.add(deleteButton);
 
-    // Adding input fields
-    gbc.gridx = 0;
-    gbc.gridy = 0;
-    inputPanel.add(new JLabel("Game Name:"), gbc);
+        dialog.add(centerPanel, BorderLayout.CENTER);
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
 
-    gbc.gridx = 1;
-    inputPanel.add(nameField, gbc);
-
-    gbc.gridx = 0;
-    gbc.gridy = 1;
-    inputPanel.add(new JLabel("Price:"), gbc);
-
-    gbc.gridx = 1;
-    inputPanel.add(priceField, gbc);
-
-    gbc.gridx = 0;
-    gbc.gridy = 2;
-    inputPanel.add(new JLabel("Description:"), gbc);
-
-    gbc.gridx = 1;
-    gbc.fill = GridBagConstraints.BOTH;
-    inputPanel.add(new JScrollPane(descriptionField), gbc);
-
-    gbc.gridx = 0;
-    gbc.gridy = 3;
-    gbc.fill = GridBagConstraints.HORIZONTAL;
-    inputPanel.add(new JLabel("Image:"), gbc);
-
-    gbc.gridx = 1;
-    inputPanel.add(imageButton, gbc);
-
-    // Add panels to dialog
-    JPanel imagePanel = new JPanel(new BorderLayout());
-    imagePanel.setBorder(BorderFactory.createTitledBorder("Image Preview"));
-    imagePanel.add(imagePreview, BorderLayout.CENTER);
-
-    JPanel centerPanel = new JPanel(new BorderLayout(10, 10));
-    centerPanel.add(inputPanel, BorderLayout.CENTER);
-    centerPanel.add(imagePanel, BorderLayout.EAST);
-
-    dialog.add(centerPanel, BorderLayout.CENTER);
-
-    // Save and Delete buttons
-    JButton saveButton = createStyledButton("Save", new Color(70, 130, 180));
-    JButton deleteButton = createStyledButton("Delete", new Color(220, 20, 60));
-
-    JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
-    buttonPanel.add(saveButton);
-    if (gameIndex >= 0) buttonPanel.add(deleteButton);
-
-    dialog.add(buttonPanel, BorderLayout.SOUTH);
-
-    // Save button action
-    saveButton.addActionListener(e -> {
-        if (validateInputs(nameField, priceField, descriptionField, imagePath[0])) {
+        // Save action
+        saveButton.addActionListener(e -> {
             try {
-                double price = Double.parseDouble(priceField.getText().trim());
-                game.setName(nameField.getText().trim());
-                game.setPrice(price);
-                game.setDescription(descriptionField.getText().trim());
-                game.setImagePath(imagePath[0]);
+                Game updatedGame = new Game(
+                    
+                    nameField.getText(),
+                    descriptionField.getText(),
+                    Double.parseDouble(priceField.getText()),
+                    imagePath[0]
+                );
 
-                if (gameIndex == -1) {
-                    ShopAuthentication.games.add(game);
+                if (listIndex >= 0) {
+                    // Update existing game
+                    GameManager.updateGame(game.getId(), updatedGame); // Assuming IDs start at 1
+                } else {
+                    // Add new game
+                    GameManager.addGame(updatedGame);
                 }
                 updateGameList();
                 dialog.dispose();
             } catch (NumberFormatException ex) {
-                showError("Price must be a valid number!");
+                JOptionPane.showMessageDialog(dialog, "Invalid price format", "Error", JOptionPane.ERROR_MESSAGE);
             }
-        }
-    });
+        });
 
-    // Delete button action
-    deleteButton.addActionListener(e -> {
-        int confirm = JOptionPane.showConfirmDialog(this,
-            "Are you sure you want to delete this game?",
-            "Confirm Deletion", JOptionPane.YES_NO_OPTION);
-        if (confirm == JOptionPane.YES_OPTION) {
-            ShopAuthentication.games.remove(gameIndex);
-            updateGameList();
-            dialog.dispose();
-        }
-    });
+        // Delete action
+        deleteButton.addActionListener(e -> {
+            int confirm = JOptionPane.showConfirmDialog(
+                dialog,
+                "Are you sure you want to delete this game?",
+                "Confirm Delete",
+                JOptionPane.YES_NO_OPTION
+            );
+            if (confirm == JOptionPane.YES_OPTION) {
+                GameManager.deleteGame(game.getId()); // Assuming IDs start at 1
+                updateGameList();
+                dialog.dispose();
+            }
+        });
 
-    // Show dialog
-    dialog.setVisible(true);
-}
-
-    private boolean validateInputs(JTextField nameField, JTextField priceField, JTextArea descriptionField, String imagePath) {
-        if (nameField.getText().trim().isEmpty()) {
-            showError("Game name cannot be empty!");
-            return false;
-        }
-        try {
-            Double.parseDouble(priceField.getText().trim());
-        } catch (NumberFormatException ex) {
-            showError("Price must be a valid number!");
-            return false;
-        }
-        if (descriptionField.getText().trim().isEmpty()) {
-            showError("Description cannot be empty!");
-            return false;
-        }
-        if (imagePath == null || imagePath.isEmpty()) {
-            showError("An image must be selected!");
-            return false;
-        }
-        return true;
+        dialog.setVisible(true);
     }
 
-    private void updateImagePreview(JLabel imagePreview, String imagePath) {
-    if (imagePath != null && !imagePath.isEmpty()) {
-        ImageIcon imageIcon = new ImageIcon(imagePath);
-        Image scaledImage = imageIcon.getImage().getScaledInstance(200, 200, Image.SCALE_SMOOTH);
-        imagePreview.setIcon(new ImageIcon(scaledImage));
-    } else {
-        imagePreview.setIcon(null);
-    }
-}
-
-
-    private void showError(String message) {
-        JOptionPane.showMessageDialog(this, message, "Error", JOptionPane.ERROR_MESSAGE);
+    private void updateImagePreview(JLabel label, String path) {
+        ImageIcon icon = new ImageIcon(path);
+        Image scaled = icon.getImage().getScaledInstance(200, 200, Image.SCALE_SMOOTH);
+        label.setIcon(new ImageIcon(scaled));
     }
 
     private JButton createStyledButton(String text, Color color) {
         JButton button = new JButton(text);
         button.setBackground(color);
         button.setForeground(Color.WHITE);
-        button.setFocusPainted(false);
-        button.setBorder(BorderFactory.createRaisedBevelBorder());
-        button.setFont(new Font("Arial", Font.BOLD, 14));
-        button.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                button.setBackground(color.darker());
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-                button.setBackground(color);
-            }
-        });
         return button;
     }
 }

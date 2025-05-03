@@ -19,7 +19,6 @@ public class Client {
         this.name = name;
         this.email = email;
         this.password = password;
-        this.cart = new Cart(); // Each client gets their own cart
     }
 
     // Getter and Setter methods

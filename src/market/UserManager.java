@@ -7,7 +7,7 @@ import java.util.Map;
 public class UserManager {
     public static void createClient(String name, String email, String password) {
         String sql = "INSERT INTO users(name, email, password) VALUES(?,?,?)";
-        
+       
         try (Connection conn = DatabaseHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, name);
@@ -34,25 +34,25 @@ public class UserManager {
     }
 
     public static Client getClient(String email) {
-        String sql = "SELECT * FROM users WHERE email = ?";
+    String sql = "SELECT * FROM users WHERE email = ?";
+    
+    try (Connection conn = DatabaseHelper.getConnection();
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        pstmt.setString(1, email);
+        ResultSet rs = pstmt.executeQuery();
         
-        try (Connection conn = DatabaseHelper.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, email);
-            ResultSet rs = pstmt.executeQuery();
-            
-            if (rs.next()) {
-                return new Client(
-                    rs.getString("name"),
-                    rs.getString("email"),
-                    rs.getString("password")
-                );
-            }
-        } catch (SQLException e) {
-            System.out.println("Error getting client: " + e.getMessage());
+        if (rs.next()) {
+            return new Client(
+                rs.getString("name"),
+                rs.getString("email"),
+                rs.getString("password")
+            );
         }
-        return null;
+    } catch (SQLException e) {
+        System.out.println("Error getting client: " + e.getMessage());
     }
+    return null;
+}
 
     public static boolean clientExists(String email) {
         String sql = "SELECT COUNT(*) FROM users WHERE email = ?";

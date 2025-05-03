@@ -2,6 +2,7 @@ package market;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class Cart {
@@ -99,36 +100,38 @@ public class Cart {
         }
     }
     
-    public List<Game> getCartItems() {
-        List<Game> items = new ArrayList<>();
-        String sql = "SELECT g.name, g.price, g.description, g.image_path, ci.quantity " +
-                     "FROM cart_items ci JOIN games g ON ci.game_id = g.id " +
-                     "WHERE ci.cart_id = ?";
+   public List<Game> getCartItems() {
+    List<Game> items = new ArrayList<>();
+    String sql = "SELECT g.id, g.name, g.price, g.description, g.image_path, ci.quantity " +
+                 "FROM cart_items ci JOIN games g ON ci.game_id = g.id " +
+                 "WHERE ci.cart_id = ?";
+    
+    try (Connection conn = DatabaseHelper.getConnection();
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        pstmt.setInt(1, cartId);
+        ResultSet rs = pstmt.executeQuery();
         
-        try (Connection conn = DatabaseHelper.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, cartId);
-            ResultSet rs = pstmt.executeQuery();
-            
-            while (rs.next()) {
-                Game game;
-                game = new Game(
-                        rs.getInt("id"),
-                        rs.getString("name"),
-                        rs.getDouble("price"),
-                        rs.getString("description"),
-                        rs.getString("image_path")
-                );
-                // Add quantity times
-                for (int i = 0; i < rs.getInt("quantity"); i++) {
-                    items.add(game);
-                }
+        while (rs.next()) {
+            Game game = new Game(
+                rs.getInt("g.id"),  // Changed from "id" to "g.id"
+                rs.getString("g.name"),
+                rs.getDouble("g.price"),
+                rs.getString("g.description"),
+                rs.getString("g.image_path")
+            );
+            // Add quantity times
+            for (int i = 0; i < rs.getInt("ci.quantity"); i++) {
+                items.add(game);
             }
-        } catch (SQLException e) {
-            System.out.println("Error getting cart items: " + e.getMessage());
         }
-        return items;
-    }
+    } catch (SQLException e) {
+    System.err.println("Error getting cart items for cart ID " + cartId);
+    e.printStackTrace();
+    // Consider throwing a custom exception or returning empty list
+    return Collections.emptyList();
+}
+    return items;
+}
     
     public boolean isEmpty() {
         String sql = "SELECT COUNT(*) FROM cart_items WHERE cart_id = ?";

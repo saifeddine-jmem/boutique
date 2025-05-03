@@ -1,5 +1,5 @@
 package market;
-
+import java.sql.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -178,7 +178,9 @@ public class AdminCode extends JFrame {
         // Add client button
         JButton addClientButton = new JButton("Add Client");
         addClientButton.addActionListener(e -> showAddClientDialog());
-
+        
+        JButton editButton = new JButton("Edit User");
+        editButton.addActionListener(e -> editSelectedClient());
         // Delete client button
         JButton deleteClientButton = new JButton("Delete Client");
         deleteClientButton.addActionListener(e -> deleteClient());
@@ -207,6 +209,9 @@ public class AdminCode extends JFrame {
         buttonPanel.setLayout(new GridLayout(1, 2, 10, 10));  // Two buttons side by side
         buttonPanel.add(addClientButton);
         buttonPanel.add(deleteClientButton);
+        buttonPanel.add(addClientButton);
+        buttonPanel.add(editButton);  // Add Edit button
+        buttonPanel.add(deleteClientButton);
 
         add(buttonPanel, BorderLayout.NORTH);
         add(clientListScrollPane, BorderLayout.CENTER);
@@ -228,7 +233,74 @@ public class AdminCode extends JFrame {
                 showError("Error updating client list: " + e.getMessage());
             }
     }
+    private void editSelectedClient() {
+        int selectedIndex = clientList.getSelectedIndex();
+        if (selectedIndex >= 0) {
+            String email = clientListModel.get(selectedIndex).split(" - ")[1];
+            Client client = UserManager.getClient(email);
+            if (client != null) {
+                showEditClientDialog(client, email);
+            }
+        } else {
+            showError("Please select a client to edit.");
+        }
+    }
+    // Updated dialog for editing clients
+    private void showEditClientDialog(Client client, String originalEmail) {
+        JTextField nameField = new JTextField(client.getName());
+        JTextField emailField = new JTextField(client.getEmail());
+        JPasswordField passwordField = new JPasswordField(client.getPassword());
+        
+        Object[] message = {
+            "Name:", nameField,
+            "Email:", emailField,
+            "Password:", passwordField
+        };
 
+        int option = JOptionPane.showConfirmDialog(
+            this, 
+            message, 
+            "Edit Client", 
+            JOptionPane.OK_CANCEL_OPTION
+        );
+
+        if (option == JOptionPane.OK_OPTION) {
+            String newName = nameField.getText().trim();
+            String newEmail = emailField.getText().trim();
+            String newPassword = new String(passwordField.getPassword()).trim();
+
+            // Validate inputs
+            if (newName.isEmpty() || newEmail.isEmpty() || newPassword.isEmpty()) {
+                showError("All fields are required!");
+                return;
+            }
+
+            if (!isValidEmail(newEmail)) {
+                showError("Invalid email format!");
+                return;
+            }
+
+            try {
+                // Update in database
+                String sql = "UPDATE users SET name = ?, email = ?, password = ? WHERE email = ?";
+                try (Connection conn = DatabaseHelper.getConnection();
+                     PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                    pstmt.setString(1, newName);
+                    pstmt.setString(2, newEmail);
+                    pstmt.setString(3, newPassword);
+                    pstmt.setString(4, originalEmail);
+                    pstmt.executeUpdate();
+                }
+
+                // Refresh the list
+                updateClientList();
+                JOptionPane.showMessageDialog(this, "Client updated successfully!");
+
+            } catch (SQLException e) {
+                showError("Error updating client: " + e.getMessage());
+            }
+        }
+    }
     private void showAddClientDialog() {
         JTextField nameField = new JTextField();
         JTextField emailField = new JTextField();

@@ -1,35 +1,28 @@
 package market;
 
-
-import java.awt.*;
 import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
 
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
-
-/**
- *
- * @author jmem
- */
 class CartPanel extends JFrame {
     private DefaultListModel<String> cartModel;
     private JList<String> cartList;
     private JLabel totalLabel;
+    private JButton removeButton;
+    private JButton checkoutButton;
+    private Cart cart;
 
-    public CartPanel(Cart cart , String name,String email) {
+    public CartPanel(Cart cart, String name, String email) {
+        this.cart = cart;
         setTitle("Cart");
         setSize(700, 394);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLayout(new BorderLayout(10, 10));
-        setLocationRelativeTo(null); // Center the window
+        setLocationRelativeTo(null);
 
         // Initialize components
         cartModel = new DefaultListModel<>();
-        for (Game game : cart.getCartItems()) {
-            cartModel.addElement(game.getName() + " - $" + game.getPrice());
-        }
+        updateCartModel();
 
         cartList = new JList<>(cartModel);
         cartList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -37,24 +30,25 @@ class CartPanel extends JFrame {
         JScrollPane scrollPane = new JScrollPane(cartList);
         scrollPane.setBorder(BorderFactory.createTitledBorder("Your Cart Items"));
 
-        // Bottom panel: Total price and action buttons
+        // Bottom panel
         JPanel bottomPanel = new JPanel(new BorderLayout(10, 10));
         bottomPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         // Total Price Section
         JPanel totalPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        totalLabel = new JLabel("Total: $" + calculateTotal(cart));
+        totalLabel = new JLabel("Total: $" + calculateTotal());
         totalLabel.setFont(new Font("Arial", Font.BOLD, 16));
         totalPanel.add(totalLabel);
 
         // Action Buttons Section
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
-        JButton removeButton = new JButton("Remove Selected");
+        removeButton = new JButton("Remove Selected");
         removeButton.setFont(new Font("Arial", Font.PLAIN, 14));
-        removeButton.addActionListener(e -> removeSelectedItem(cart));
-        JButton checkoutButton = new JButton("Checkout");
+        removeButton.addActionListener(this::removeSelectedItem);
+        
+        checkoutButton = new JButton("Checkout");
         checkoutButton.setFont(new Font("Arial", Font.PLAIN, 14));
-        checkoutButton.addActionListener(e -> proceedToCheckout(cart ,name,email));
+        checkoutButton.addActionListener(e -> proceedToCheckout(name, email));
 
         buttonPanel.add(removeButton);
         buttonPanel.add(checkoutButton);
@@ -66,21 +60,39 @@ class CartPanel extends JFrame {
         add(scrollPane, BorderLayout.CENTER);
         add(bottomPanel, BorderLayout.SOUTH);
 
+        updateButtonStates();
         setVisible(true);
     }
 
-    private double calculateTotal(Cart cart) {
-    double total = cart.getCartItems().stream().mapToDouble(Game::getPrice).sum();
-    return Math.round(total * 100.0) / 100.0;
+    private void updateCartModel() {
+        cartModel.clear();
+        if (cart.isEmpty()) {
+            cartModel.addElement("Your cart is empty!");
+        } else {
+            for (Game game : cart.getCartItems()) {
+                cartModel.addElement(game.getName() + " - $" + game.getPrice());
+            }
+        }
     }
 
-    private void removeSelectedItem(Cart cart) {
+    private void updateButtonStates() {
+        boolean cartEmpty = cart.isEmpty();
+        removeButton.setEnabled(!cartEmpty);
+        checkoutButton.setEnabled(!cartEmpty);
+    }
+
+    private double calculateTotal() {
+        return cart.isEmpty() ? 0.0 : Math.round(cart.calculateTotal() * 100.0) / 100.0;
+    }
+
+    private void removeSelectedItem(ActionEvent e) {
         int selectedIndex = cartList.getSelectedIndex();
-        if (selectedIndex >= 0) {
+        if (selectedIndex >= 0 && !cart.isEmpty()) {
             String selectedValue = cartModel.get(selectedIndex);
-            cart.removeGameByName(selectedValue.split(" - ")[0]); // Assuming Cart has a removeGameByName method
-            cartModel.remove(selectedIndex);
-            totalLabel.setText("Total: $" + calculateTotal(cart));
+            cart.removeGameByName(selectedValue.split(" - ")[0]);
+            updateCartModel();
+            totalLabel.setText("Total: $" + calculateTotal());
+            updateButtonStates();
         } else {
             JOptionPane.showMessageDialog(this,
                     "Please select an item to remove.",
@@ -88,18 +100,20 @@ class CartPanel extends JFrame {
         }
     }
 
-    private void proceedToCheckout(Cart cart ,String name, String email) {
-        if (cart.getCartItems().isEmpty()) {
+    private void proceedToCheckout(String name, String email) {
+        if (cart.isEmpty()) {
             JOptionPane.showMessageDialog(this,
                     "Your cart is empty! Add items to proceed.",
                     "Empty Cart", JOptionPane.WARNING_MESSAGE);
         } else {
             JOptionPane.showMessageDialog(this,
-                    "Thank you for your purchase! Total: $" + calculateTotal(cart),
+                    "Thank you for your purchase! Total: $" + calculateTotal(),
                     "Checkout Complete", JOptionPane.INFORMATION_MESSAGE);
-            ReceiptPanel.Bill(cart , calculateTotal(cart), name,email);
-            cart.clear(); // Assuming Cart has a clear method
-            dispose(); // Close the cart window
+            ReceiptPanel.Bill(cart, calculateTotal(), name, email);
+            cart.clear();
+            updateCartModel();
+            updateButtonStates();
+            totalLabel.setText("Total: $0.00");
         }
     }
 }

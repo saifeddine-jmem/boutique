@@ -1,58 +1,104 @@
 package market;
+
+import java.sql.*;
 import java.util.HashMap;
 import java.util.Map;
 
 public class UserManager {
-
-    private static Map<String, Client> clientStore = new HashMap<>();
-    private static Admin admin;
-
-    // Method to create and store a new client
     public static void createClient(String name, String email, String password) {
-        if (!clientExists(email)) {
-            Client client = new Client(name, email, password);
-            clientStore.put(email, client);
-            System.out.println("Client created successfully.");
-        } else {
-            System.out.println("Client with this email already exists.");
+        String sql = "INSERT INTO users(name, email, password) VALUES(?,?,?)";
+       
+        try (Connection conn = DatabaseHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, name);
+            pstmt.setString(2, email);
+            pstmt.setString(3, password);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println("Error creating client: " + e.getMessage());
         }
     }
 
-    // Method to create and return admin
-    public static Admin createAdmin() {
-        if (admin == null) {
-            admin = new Admin("Admin", "admin@gmail.com", "admin123"); // Default admin credentials
-        }
-        return admin;
-    }
-
-    // Method to get the admin
-    public static Admin getAdmin() {
-        return admin;
-    }
-
-    // Method to check if the provided email is an admin's email
     public static boolean isAdmin(String email) {
-        return admin != null && admin.getEmail().equals(email);
+        String sql = "SELECT is_admin FROM users WHERE email = ?";
+        
+        try (Connection conn = DatabaseHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, email);
+            ResultSet rs = pstmt.executeQuery();
+            return rs.next() && rs.getBoolean("is_admin");
+        } catch (SQLException e) {
+            System.out.println("Error checking admin status: " + e.getMessage());
+            return false;
+        }
     }
 
-    // Method to get a client by email
     public static Client getClient(String email) {
-        return clientStore.get(email);
+    String sql = "SELECT * FROM users WHERE email = ?";
+    
+    try (Connection conn = DatabaseHelper.getConnection();
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        pstmt.setString(1, email);
+        ResultSet rs = pstmt.executeQuery();
+        
+        if (rs.next()) {
+            return new Client(
+                rs.getString("name"),
+                rs.getString("email"),
+                rs.getString("password")
+            );
+        }
+    } catch (SQLException e) {
+        System.out.println("Error getting client: " + e.getMessage());
     }
+    return null;
+}
 
-    // Method to check if client exists by email
     public static boolean clientExists(String email) {
-        return clientStore.containsKey(email);
+        String sql = "SELECT COUNT(*) FROM users WHERE email = ?";
+        
+        try (Connection conn = DatabaseHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, email);
+            ResultSet rs = pstmt.executeQuery();
+            return rs.next() && rs.getInt(1) > 0;
+        } catch (SQLException e) {
+            System.out.println("Error checking client existence: " + e.getMessage());
+            return false;
+        }
     }
 
-    // Method to remove a client by email
     public static void deleteClient(String email) {
-        clientStore.remove(email);
+        String sql = "DELETE FROM users WHERE email = ?";
+        
+        try (Connection conn = DatabaseHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, email);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println("Error deleting client: " + e.getMessage());
+        }
     }
 
-    // Method to get all clients (for admin panel)
     public static Map<String, Client> getAllClients() {
-        return clientStore;
+        Map<String, Client> clients = new HashMap<>();
+        String sql = "SELECT * FROM users WHERE is_admin = FALSE";
+        
+        try (Connection conn = DatabaseHelper.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            
+            while (rs.next()) {
+                Client client = new Client(
+                    rs.getString("name"),
+                    rs.getString("email"),
+                    rs.getString("password")
+                );
+                clients.put(client.getEmail(), client);
+            }
+        } catch (SQLException e) {
+            System.out.println("Error getting all clients: " + e.getMessage());
+        }
+        return clients;
     }
 }

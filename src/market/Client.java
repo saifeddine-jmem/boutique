@@ -1,5 +1,7 @@
 package market;
 
+import java.sql.*;
+
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
@@ -19,9 +21,23 @@ public class Client {
         this.name = name;
         this.email = email;
         this.password = password;
-        this.cart = new Cart(); // Each client gets their own cart
+        this.cart = new Cart(getUserId()); // Initialize cart with user ID
     }
-
+    
+    private int getUserId() {
+    String sql = "SELECT id FROM users WHERE email = ?";
+    try (Connection conn = (Connection) DatabaseHelper.getConnection();
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        pstmt.setString(1, this.email);
+        ResultSet rs = pstmt.executeQuery();
+        if (rs.next()) {
+            return rs.getInt("id");
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return -1; // or throw an exception
+}
     // Getter and Setter methods
     public String getName() {
         return name;
@@ -50,5 +66,6 @@ public class Client {
     public void setPassword(String password) {
         this.password = password;
     }
+    
 }
 

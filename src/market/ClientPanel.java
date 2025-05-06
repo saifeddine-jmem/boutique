@@ -91,7 +91,8 @@ public class ClientPanel extends JFrame {
             "Sort by Price (Low to High)", 
             "Sort by Price (High to Low)", 
             "Sort A-Z", 
-            "Sort Z-A"
+            "Sort Z-A" , 
+            "Sort by Category"
         };
         
         JComboBox<String> sortMenu = new JComboBox<>(sortOptions);
@@ -225,6 +226,10 @@ public class ClientPanel extends JFrame {
             case "Sort Z-A":
                 filteredGames.sort(Comparator.comparing(Game::getName).reversed());
                 break;
+             case "Sort by Category":
+            filteredGames.sort(Comparator.comparing(Game::getCategory, String.CASE_INSENSITIVE_ORDER)
+                                         .thenComparing(Game::getName));
+            break;
         }
         updateGameListDisplay();
     }

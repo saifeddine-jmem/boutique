@@ -113,11 +113,12 @@ public class Cart {
         
         while (rs.next()) {
             Game game = new Game(
-                rs.getInt("g.id"),  // Changed from "id" to "g.id"
+               
                 rs.getString("g.name"),
                 rs.getDouble("g.price"),
                 rs.getString("g.description"),
-                rs.getString("g.image_path")
+                rs.getString("g.image_path"),
+                rs.getString("g.category") 
             );
             // Add quantity times
             for (int i = 0; i < rs.getInt("ci.quantity"); i++) {

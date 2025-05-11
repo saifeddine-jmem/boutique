@@ -8,7 +8,8 @@ A complete desktop application for managing a video game shop with admin and cli
 
 ![Prestewi Screenshot](![image](https://github.com/user-attachments/assets/315cfa0f-6522-404b-ba7f-189fcecfceba)
 )
-) 
+![image](https://github.com/user-attachments/assets/81def0e1-8926-44da-a86a-c3b484d94a13)
+
 
 ## ✨ Features
 

@@ -1,4 +1,4 @@
-gipackage market;
+package market;
 
 import java.sql.*;
 

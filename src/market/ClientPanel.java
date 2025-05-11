@@ -6,6 +6,8 @@ import java.awt.event.*;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Set;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.Timer;
@@ -21,6 +23,8 @@ public class ClientPanel extends JFrame {
     private Cart cart;
     private String name;
     private String email;
+    private JComboBox<String> categoryFilter;
+    private JLabel resultsCounter;
 
     public ClientPanel(Client client) {
         this.cart = client.getCart();
@@ -75,6 +79,7 @@ public class ClientPanel extends JFrame {
         JButton clearButton = new JButton("Clear");
         clearButton.addActionListener(e -> {
             searchField.setText("");
+            categoryFilter.setSelectedIndex(0);
             searchGames();
         });
         
@@ -86,24 +91,54 @@ public class ClientPanel extends JFrame {
         searchPanel.add(searchField, BorderLayout.CENTER);
         searchPanel.add(searchButtonPanel, BorderLayout.EAST);
 
+        // Category filter components
+        JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+        filterPanel.add(new JLabel("Filter by:"));
+        
+        // Get unique categories
+        Set<String> categories = new HashSet<>();
+        categories.add("All Categories");
+        for (Game game : allGames) {
+            if (game.getCategory() != null && !game.getCategory().isEmpty()) {
+                categories.add(game.getCategory());
+            }
+        }
+        
+        categoryFilter = new JComboBox<>(categories.toArray(new String[0]));
+        categoryFilter.addActionListener(e -> filterByCategory());
+        filterPanel.add(categoryFilter);
+
+        // Results counter
+        resultsCounter = new JLabel();
+        updateResultsCounter();
+        filterPanel.add(resultsCounter);
+
         // Sort components
         String[] sortOptions = {
             "Sort by Price (Low to High)", 
             "Sort by Price (High to Low)", 
             "Sort A-Z", 
-            "Sort Z-A"
+            "Sort Z-A", 
+            "Sort by Category"
         };
         
         JComboBox<String> sortMenu = new JComboBox<>(sortOptions);
-        sortMenu.addActionListener(e -> 
-            applySort((String) sortMenu.getSelectedItem()));
+        sortMenu.addActionListener(e -> applySort((String) sortMenu.getSelectedItem()));
         
-        JPanel sortPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0));
+        JPanel sortPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 0));
         sortPanel.add(new JLabel("Sort by:"));
         sortPanel.add(sortMenu);
 
-        topPanel.add(searchPanel, BorderLayout.NORTH);
-        topPanel.add(sortPanel, BorderLayout.SOUTH);
+        // Combine all top components
+        JPanel controlsPanel = new JPanel(new GridLayout(2, 1, 5, 5));
+        JPanel upperControls = new JPanel(new BorderLayout());
+        upperControls.add(searchPanel, BorderLayout.CENTER);
+        upperControls.add(filterPanel, BorderLayout.EAST);
+        
+        controlsPanel.add(upperControls);
+        controlsPanel.add(sortPanel);
+        
+        topPanel.add(controlsPanel, BorderLayout.CENTER);
         add(topPanel, BorderLayout.NORTH);
     }
 
@@ -166,19 +201,28 @@ public class ClientPanel extends JFrame {
     private void updateGameListDisplay() {
         listModel.clear();
         for (Game game : filteredGames) {
-            listModel.addElement(String.format("%s - $%.2f", game.getName(), game.getPrice()));
+            listModel.addElement(String.format("%s - $%.2f (%s)", 
+                game.getName(), game.getPrice(), game.getCategory()));
         }
         
         if (filteredGames.isEmpty()) {
-            listModel.addElement("No games found");
+            listModel.addElement("No games found matching your criteria");
         }
+        
+        updateResultsCounter();
     }
 
     private void updateGameDetails() {
         int selectedIndex = gameList.getSelectedIndex();
         if (selectedIndex >= 0 && selectedIndex < filteredGames.size()) {
             Game selectedGame = filteredGames.get(selectedIndex);
-            descriptionArea.setText(selectedGame.getDescription());
+            descriptionArea.setText(String.format(
+                "Name: %s\nPrice: $%.2f\nCategory: %s\n\nDescription:\n%s",
+                selectedGame.getName(),
+                selectedGame.getPrice(),
+                selectedGame.getCategory(),
+                selectedGame.getDescription()
+            ));
             
             try {
                 ImageIcon icon = new ImageIcon(selectedGame.getImagePath());
@@ -193,18 +237,27 @@ public class ClientPanel extends JFrame {
         }
     }
 
+    private void filterByCategory() {
+        searchGames();
+    }
+
     private void searchGames() {
         String searchText = searchField.getText().toLowerCase().trim();
+        String selectedCategory = (String) categoryFilter.getSelectedItem();
+        
         filteredGames.clear();
         
-        if (searchText.isEmpty()) {
-            filteredGames.addAll(allGames);
-        } else {
-            for (Game game : allGames) {
-                if (game.getName().toLowerCase().contains(searchText) || 
-                    game.getDescription().toLowerCase().contains(searchText)) {
-                    filteredGames.add(game);
-                }
+        for (Game game : allGames) {
+            boolean matchesSearch = searchText.isEmpty() || 
+                game.getName().toLowerCase().contains(searchText) || 
+                game.getDescription().toLowerCase().contains(searchText) ||
+                game.getCategory().toLowerCase().contains(searchText);
+            
+            boolean matchesCategory = selectedCategory.equals("All Categories") || 
+                (game.getCategory() != null && game.getCategory().equals(selectedCategory));
+            
+            if (matchesSearch && matchesCategory) {
+                filteredGames.add(game);
             }
         }
         
@@ -225,8 +278,17 @@ public class ClientPanel extends JFrame {
             case "Sort Z-A":
                 filteredGames.sort(Comparator.comparing(Game::getName).reversed());
                 break;
+            case "Sort by Category":
+                filteredGames.sort(Comparator.comparing(Game::getCategory, String.CASE_INSENSITIVE_ORDER)
+                                         .thenComparing(Game::getName));
+                break;
         }
         updateGameListDisplay();
+    }
+
+    private void updateResultsCounter() {
+        resultsCounter.setText(String.format("Showing %d of %d games", 
+            filteredGames.size(), allGames.size()));
     }
 
     private void addToCart() {

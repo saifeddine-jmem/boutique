@@ -102,7 +102,7 @@ public class Cart {
     
    public List<Game> getCartItems() {
     List<Game> items = new ArrayList<>();
-    String sql = "SELECT g.id, g.name, g.price, g.description, g.image_path, ci.quantity " +
+    String sql = "SELECT g.id, g.name, g.price, g.description, g.image_path,g.category, ci.quantity " +
                  "FROM cart_items ci JOIN games g ON ci.game_id = g.id " +
                  "WHERE ci.cart_id = ?";
     
@@ -113,11 +113,12 @@ public class Cart {
         
         while (rs.next()) {
             Game game = new Game(
-                rs.getInt("g.id"),  // Changed from "id" to "g.id"
+               
                 rs.getString("g.name"),
                 rs.getDouble("g.price"),
                 rs.getString("g.description"),
-                rs.getString("g.image_path")
+                rs.getString("g.image_path"),
+                rs.getString("g.category") 
             );
             // Add quantity times
             for (int i = 0; i < rs.getInt("ci.quantity"); i++) {

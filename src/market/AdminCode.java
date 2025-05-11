@@ -459,7 +459,7 @@ class GameManagementPanel extends JFrame {
     }
 
     private void showAddGameDialog() {
-        showGameDetails(new Game("", "", 0, ""), -1);
+        showGameDetails(new Game("", 0, "" ,"",""), -1);
     }
 
     private void showGameDetails(Game game, int listIndex) {
@@ -469,6 +469,8 @@ class GameManagementPanel extends JFrame {
 
         // Input fields
         JTextField nameField = new JTextField(game.getName());
+        JTextField categoryField = new JTextField(game.getCategory());
+
         JTextField priceField = new JTextField(String.valueOf(game.getPrice()));
         JTextArea descriptionField = new JTextArea(game.getDescription());
         descriptionField.setLineWrap(true);
@@ -492,15 +494,19 @@ class GameManagementPanel extends JFrame {
         });
 
         // Layout
-        JPanel inputPanel = new JPanel(new GridLayout(4, 2, 5, 5));
+        JPanel inputPanel = new JPanel(new GridLayout(5, 2, 5, 5));
         inputPanel.add(new JLabel("Name:"));
-        inputPanel.add(nameField);
-        inputPanel.add(new JLabel("Price:"));
-        inputPanel.add(priceField);
-        inputPanel.add(new JLabel("Description:"));
-        inputPanel.add(new JScrollPane(descriptionField));
-        inputPanel.add(new JLabel("Image:"));
-        inputPanel.add(imageButton);
+inputPanel.add(nameField);
+inputPanel.add(new JLabel("Price:"));
+inputPanel.add(priceField);
+inputPanel.add(new JLabel("Description:"));
+inputPanel.add(new JScrollPane(descriptionField));
+inputPanel.add(new JLabel("Category:"));
+inputPanel.add(categoryField);
+inputPanel.add(new JLabel("Image:"));
+inputPanel.add(imageButton);
+
+     
 
         JPanel imagePanel = new JPanel(new BorderLayout());
         imagePanel.add(imagePreview, BorderLayout.CENTER);
@@ -527,9 +533,10 @@ class GameManagementPanel extends JFrame {
                 Game updatedGame = new Game(
                     
                     nameField.getText(),
-                    descriptionField.getText(),
                     Double.parseDouble(priceField.getText()),
-                    imagePath[0]
+                     descriptionField.getText(),
+                    imagePath[0],
+                    categoryField.getText()
                 );
 
                 if (listIndex >= 0) {

@@ -255,7 +255,7 @@ public class ClientPanel extends JFrame {
                 game.getCategory().toLowerCase().contains(searchText);
             
             boolean matchesCategory = selectedCategory.equals("All Categories") || 
-                (game.getCategory() != null && game.getCategory().equals(selectedCategory));
+                (game.getCategory() != null && (" "+game.getCategory()+" ").equals(selectedCategory));
             
             if (matchesSearch && matchesCategory) {
                 filteredGames.add(game);

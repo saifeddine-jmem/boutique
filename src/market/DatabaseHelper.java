@@ -1,4 +1,4 @@
-package market;
+gipackage market;
 
 import java.sql.*;
 
@@ -48,14 +48,14 @@ public class DatabaseHelper {
                 
             // Create admin user if not exists
             ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM users WHERE is_admin = TRUE");
-if (rs.next() && rs.getInt(1) == 0) {  // Must call rs.next() first!
+if (rs.next() && rs.getInt(1) == 0) {  
     stmt.executeUpdate("INSERT INTO users (name, email, password, is_admin) VALUES " +
         "('Admin', 'admin@gmail.com', 'admin123', TRUE)");
 }
 
 // Insert sample games if empty
 rs = stmt.executeQuery("SELECT COUNT(*) FROM games");
-if (rs.next() && rs.getInt(1) == 0) {  // Must call rs.next() first!
+if (rs.next() && rs.getInt(1) == 0) {  
     stmt.executeUpdate("INSERT INTO games (name, price, description, image_path) VALUES " +
         "('The Legend of Zelda: Breath of the Wild', 59.99, 'An open-world action-adventure game...', 'images/zelda.jpg')");
     // Add more games if needed

@@ -6,7 +6,8 @@
 
 A complete desktop application for managing a video game shop with admin and client interfaces, shopping cart, and receipt generation.
 
-![Prestewi Screenshot](![image](https://github.com/user-attachments/assets/321ecc87-9c07-428d-a0f5-dec8dfa650ac)
+![Prestewi Screenshot](![image](https://github.com/user-attachments/assets/315cfa0f-6522-404b-ba7f-189fcecfceba)
+)
 ) 
 
 ## ✨ Features

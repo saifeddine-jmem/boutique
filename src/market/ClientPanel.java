@@ -100,7 +100,7 @@ public class ClientPanel extends JFrame {
         categories.add("All Categories");
         for (Game game : allGames) {
             if (game.getCategory() != null && !game.getCategory().isEmpty()) {
-                categories.add(game.getCategory());
+                categories.add(" "+game.getCategory()+" ");
             }
         }
         
@@ -119,7 +119,8 @@ public class ClientPanel extends JFrame {
             "Sort by Price (High to Low)", 
             "Sort A-Z", 
             "Sort Z-A", 
-            "Sort by Category"
+            "Sort by Category",
+            "Sort by Category (reversed)"
         };
         
         JComboBox<String> sortMenu = new JComboBox<>(sortOptions);
@@ -281,6 +282,10 @@ public class ClientPanel extends JFrame {
             case "Sort by Category":
                 filteredGames.sort(Comparator.comparing(Game::getCategory, String.CASE_INSENSITIVE_ORDER)
                                          .thenComparing(Game::getName));
+                break;
+            case "Sort by Category (reversed)":
+                filteredGames.sort(Comparator.comparing(Game::getCategory, String.CASE_INSENSITIVE_ORDER)
+                                         .thenComparing(Game::getName).reversed());
                 break;
         }
         updateGameListDisplay();

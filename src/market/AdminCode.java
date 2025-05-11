@@ -179,8 +179,7 @@ public class AdminCode extends JFrame {
         JButton addClientButton = new JButton("Add Client");
         addClientButton.addActionListener(e -> showAddClientDialog());
         
-        JButton editButton = new JButton("Edit User");
-        editButton.addActionListener(e -> editSelectedClient());
+        
         // Delete client button
         JButton deleteClientButton = new JButton("Delete Client");
         deleteClientButton.addActionListener(e -> deleteClient());
@@ -194,10 +193,15 @@ public class AdminCode extends JFrame {
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2) {
                     int selectedIndex = clientList.getSelectedIndex();
-                    if (selectedIndex >= 0) {
-                        String email = clientListModel.get(selectedIndex).split(" - ")[1];
-                        showClientDetails(UserManager.getClient(email));
-                    }
+        if (selectedIndex >= 0) {
+            String email = clientListModel.get(selectedIndex).split(" - ")[1];
+            Client client = UserManager.getClient(email);
+            if (client != null) {
+                showEditClientDialog(client, email);
+            }
+        } else {
+            showError("Please select a client to edit.");
+        }
                 }
             }
         });
@@ -210,7 +214,7 @@ public class AdminCode extends JFrame {
         buttonPanel.add(addClientButton);
         buttonPanel.add(deleteClientButton);
         buttonPanel.add(addClientButton);
-        buttonPanel.add(editButton);  // Add Edit button
+          // Add Edit button
         buttonPanel.add(deleteClientButton);
 
         add(buttonPanel, BorderLayout.NORTH);

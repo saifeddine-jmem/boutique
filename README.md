@@ -83,8 +83,6 @@ La base de données **MySQL** stocke les données suivantes :
 ---
 
 ## ✅ comment améliorer 
-
-- Ajout de paiements simulés
 - Fonction de remboursement
 - Statistiques de ventes pour les admins
 - Interface modernisée avec JavaFX
